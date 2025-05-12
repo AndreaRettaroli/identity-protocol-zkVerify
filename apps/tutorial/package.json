@@ -29,7 +29,7 @@
     "tslog": "^4.9.2",
     "typescript": "^5.4.5",
     "yargs": "^17.7.2",
-    "zkverifyjs": "^0.3.1"
+    "zkverifyjs": "^0.13.0"
   },
   "devDependencies": {
     "rimraf": "^5.0.6",
