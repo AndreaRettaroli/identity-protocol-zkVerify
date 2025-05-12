@@ -10,13 +10,23 @@ import {
   babyzkTypes,
 } from "@galxe-identity-protocol/sdk";
 import { ethers } from "ethers";
-import { VerifyTransactionInfo, VKRegistrationTransactionInfo, ZkVerifyEvents, zkVerifySession } from "zkverifyjs";
+import {
+  CurveType,
+  Library,
+  VerifyTransactionInfo,
+  VKRegistrationTransactionInfo,
+  ZkVerifyEvents,
+  zkVerifySession,
+} from "zkverifyjs";
 
 // conviniently unwrap the result of a function call by throwing an error if the result is an error.
 const unwrap = errors.unwrap;
 
-// Use ankr's free open rpc in this example.
-const MAINNET_RPC = "https://rpc.ankr.com/eth";
+// Use 1rpc's free open rpc in this example.
+//const MAINNET_RPC = "https://rpc.ankr.com/eth/<API_KEY>";
+//const MAINNET_RPC = "https://eth.llamarpc.com";
+const MAINNET_RPC = "https://1rpc.io/eth";
+
 const provider = new ethers.JsonRpcProvider(MAINNET_RPC);
 
 // This is a dummy issuer's EVM address that has been registered on mainnet.
@@ -141,12 +151,12 @@ async function proofGenProcess(myCred: credential.Credential, u: user.User) {
 async function executeVerificationWithZkVerify(proof: babyzkTypes.WholeProof, vk: unknown) {
   try {
     // Start a new zkVerifySession on our testnet
-    const session = await zkVerifySession.start().Testnet().withAccount(process.env.ZKVERIFY_SIGNER_PK!);
+    const session = await zkVerifySession.start().Volta().withAccount(process.env.ZKVERIFY_SIGNER_PK!);
 
     // Execute the verification transaction
     const { events, transactionResult } = await session
       .verify()
-      .groth16()
+      .groth16({ library: Library.snarkjs, curve: CurveType.bn254 })
       .execute({
         proofData: {
           vk: vk,
@@ -187,12 +197,12 @@ async function executeVerificationWithZkVerifyRegisteredZK(
 ) {
   try {
     // Start a new zkVerifySession on our testnet
-    const session = await zkVerifySession.start().Testnet().withAccount(process.env.ZKVERIFY_SIGNER_PK!);
+    const session = await zkVerifySession.start().Volta().withAccount(process.env.ZKVERIFY_SIGNER_PK!);
 
     // Execute the verification transaction
     const { events, transactionResult } = await session
       .verify()
-      .groth16()
+      .groth16({ library: Library.snarkjs, curve: CurveType.bn254 })
       .withRegisteredVk()
       .execute({
         proofData: {
@@ -230,8 +240,11 @@ async function executeVerificationWithZkVerifyRegisteredZK(
 
 export async function registerVerficationKey(vkJson: any): Promise<VKRegistrationTransactionInfo> {
   try {
-    const session = await zkVerifySession.start().Testnet().withAccount(process.env.ZKVERIFY_SIGNER_PK!);
-    const { transactionResult } = await session.registerVerificationKey().groth16().execute(vkJson);
+    const session = await zkVerifySession.start().Volta().withAccount(process.env.ZKVERIFY_SIGNER_PK!);
+    const { transactionResult } = await session
+      .registerVerificationKey()
+      .groth16({ library: Library.snarkjs, curve: CurveType.bn254 })
+      .execute(vkJson);
     const { statementHash } = await transactionResult;
     console.log(statementHash);
     return transactionResult;
@@ -312,10 +325,10 @@ async function main() {
   await verifyWithZkVerify(proof);
   console.log("End of verification with zkVerify");
 
-  console.log("Starting verification with zkVerify and registered verification key");
-  await verifyWithZkVerifyRegisteredZK(proof);
-  console.log("End of verification with zkVerify and registered verification key");
-  
+  //console.log("Starting verification with zkVerify and registered verification key");
+  //await verifyWithZkVerifyRegisteredZK(proof);
+  //console.log("End of verification with zkVerify and registered verification key");
+
   process.exit(0);
 }
 
